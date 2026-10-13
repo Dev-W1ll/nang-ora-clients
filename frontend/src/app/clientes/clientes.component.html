@@ -1,0 +1,44 @@
+<section class="clientes">
+  <h1>Clientes</h1>
+
+  <form class="form" (ngSubmit)="adicionar()">
+    <input name="nome" placeholder="Nome" [(ngModel)]="nome" required />
+    <input name="email" type="email" placeholder="E-mail" [(ngModel)]="email" required />
+    <button type="submit">Adicionar</button>
+  </form>
+
+  @if (erro()) {
+    <p class="erro">{{ erro() }}</p>
+  }
+
+  @if (carregando()) {
+    <p>Carregando...</p>
+  } @else {
+    <table>
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Nome</th>
+          <th>E-mail</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (c of clientes(); track c.id) {
+          <tr>
+            <td>{{ c.id }}</td>
+            <td>{{ c.nome }}</td>
+            <td>{{ c.email }}</td>
+            <td>
+              <span class="badge" [class.inativo]="c.status === 'INATIVO'">{{ c.status }}</span>
+            </td>
+          </tr>
+        } @empty {
+          <tr>
+            <td colspan="4" class="vazio">Nenhum cliente cadastrado.</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  }
+</section>
