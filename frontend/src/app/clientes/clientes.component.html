@@ -1,10 +1,13 @@
 <section class="clientes">
   <h1>Clientes</h1>
 
-  <form class="form" (ngSubmit)="adicionar()">
+  <form class="form" (ngSubmit)="salvar()">
     <input name="nome" placeholder="Nome" [(ngModel)]="nome" required />
     <input name="email" type="email" placeholder="E-mail" [(ngModel)]="email" required />
-    <button type="submit">Adicionar</button>
+    <button type="submit">{{ idEmEdicao() === null ? 'Adicionar' : 'Salvar edição' }}</button>
+    @if (idEmEdicao() !== null) {
+      <button type="button" class="secundario" (click)="cancelarEdicao()">Cancelar</button>
+    }
   </form>
 
   @if (erro()) {
@@ -21,6 +24,7 @@
           <th>Nome</th>
           <th>E-mail</th>
           <th>Status</th>
+          <th>Ações</th>
         </tr>
       </thead>
       <tbody>
@@ -32,10 +36,14 @@
             <td>
               <span class="badge" [class.inativo]="c.status === 'INATIVO'">{{ c.status }}</span>
             </td>
+            <td class="acoes">
+              <button type="button" class="secundario" (click)="editar(c)">Editar</button>
+              <button type="button" class="perigo" (click)="excluir(c)">Excluir</button>
+            </td>
           </tr>
         } @empty {
           <tr>
-            <td colspan="4" class="vazio">Nenhum cliente cadastrado.</td>
+            <td colspan="5" class="vazio">Nenhum cliente cadastrado.</td>
           </tr>
         }
       </tbody>

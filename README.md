@@ -62,8 +62,10 @@ Acesse `http://localhost:4200`.
 
 | Método | Rota             | Descrição                                   | Retorno |
 |--------|------------------|---------------------------------------------|---------|
-| GET    | `/api/clientes`  | Lista todos os clientes                     | 200     |
-| POST   | `/api/clientes`  | Cria cliente (`{ "nome": "", "email": "" }`)| 201 / 400 |
+| GET    | `/api/clientes`      | Lista todos os clientes                         | 200     |
+| POST   | `/api/clientes`      | Cria cliente (`{ "nome": "", "email": "" }`) | 201 / 400 |
+| PUT    | `/api/clientes/:id`  | Atualiza nome e e-mail do cliente                | 200 / 400 / 404 |
+| DELETE | `/api/clientes/:id`  | Exclui um cliente                                 | 204 / 400 / 404 |
 
 Teste rápido sem o frontend:
 
@@ -73,7 +75,17 @@ curl http://localhost:3000/api/clientes
 curl -X POST http://localhost:3000/api/clientes \
   -H "Content-Type: application/json" \
   -d '{"nome":"Ana Lima","email":"ana@exemplo.com"}'
+
+curl -X PUT http://localhost:3000/api/clientes/1 \
+  -H "Content-Type: application/json" \
+  -d '{"nome":"Maria Lima","email":"maria.lima@exemplo.com"}'
+
+curl -X DELETE http://localhost:3000/api/clientes/1
 ```
+
+`PUT` substitui os campos editáveis (`nome` e `email`); `DELETE` responde `204`
+sem corpo quando a exclusão funciona. Em ambos os casos, `404` significa que o
+ID não existe. A API continua usando memória: reiniciar o Node restaura os dados iniciais.
 
 ## Banco de dados (Oracle)
 
@@ -85,8 +97,22 @@ Execute em ordem:
 
 > Por simplicidade, a API usa um repositório **em memória**, para o projeto rodar sem
 > banco instalado. O repositório isola o acesso a dados; para usar Oracle basta
-> reimplementar `listar()` e `criar()` com `node-oracledb`, sem alterar rotas
-> nem controllers.
+> reimplementar as operações (`listar`, `criar`, `atualizar` e `excluir`) com
+> `node-oracledb`, sem alterar rotas nem controllers.
+
+As operações correspondentes em SQL usam parâmetros vinculados (bind variables):
+
+```sql
+UPDATE clientes
+   SET nome = :nome, email = :email
+ WHERE id = :id;
+
+DELETE FROM clientes
+ WHERE id = :id;
+```
+
+No Oracle, o repositório deve verificar quantas linhas foram afetadas para
+responder `404` quando o ID não existe e confirmar a transação com `COMMIT`.
 
 ## Decisões de design
 

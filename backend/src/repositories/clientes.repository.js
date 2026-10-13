@@ -1,5 +1,5 @@
 // Repositório em memória: permite rodar o projeto sem banco.
-// Para usar Oracle, basta reimplementar listar() e criar() com node-oracledb
+// Para usar Oracle, basta reimplementar as operações com node-oracledb
 // mantendo a mesma assinatura (ver database/ e README).
 
 const clientes = [
@@ -19,4 +19,21 @@ function criar({ nome, email }) {
   return cliente;
 }
 
-module.exports = { listar, criar };
+function atualizar(id, { nome, email }) {
+  const cliente = clientes.find((item) => item.id === id);
+  if (!cliente) return null;
+
+  cliente.nome = nome;
+  cliente.email = email;
+  return cliente;
+}
+
+function excluir(id) {
+  const indice = clientes.findIndex((item) => item.id === id);
+  if (indice === -1) return false;
+
+  clientes.splice(indice, 1);
+  return true;
+}
+
+module.exports = { listar, criar, atualizar, excluir };

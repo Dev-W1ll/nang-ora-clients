@@ -16,6 +16,7 @@ export class ClientesComponent implements OnInit {
   protected readonly clientes = signal<Cliente[]>([]);
   protected readonly carregando = signal(false);
   protected readonly erro = signal<string | null>(null);
+  protected readonly idEmEdicao = signal<number | null>(null);
 
   protected nome = '';
   protected email = '';
@@ -40,17 +41,54 @@ export class ClientesComponent implements OnInit {
     });
   }
 
-  protected adicionar(): void {
+  protected salvar(): void {
     this.erro.set(null);
+    const id = this.idEmEdicao();
+    const operacao = id === null
+      ? this.service.criar({ nome: this.nome, email: this.email })
+      : this.service.atualizar(id, { nome: this.nome, email: this.email });
 
-    this.service.criar({ nome: this.nome, email: this.email }).subscribe({
-      next: (novo) => {
-        this.clientes.update((lista) => [...lista, novo]);
-        this.nome = '';
-        this.email = '';
+    operacao.subscribe({
+      next: (clienteSalvo) => {
+        if (id === null) {
+          this.clientes.update((lista) => [...lista, clienteSalvo]);
+        } else {
+          this.clientes.update((lista) =>
+            lista.map((cliente) => cliente.id === id ? clienteSalvo : cliente),
+          );
+        }
+        this.cancelarEdicao();
       },
       error: (e: HttpErrorResponse) => {
-        this.erro.set(e.error?.erro ?? 'Erro ao cadastrar cliente.');
+        this.erro.set(e.error?.erro ?? 'Erro ao salvar cliente.');
+      },
+    });
+  }
+
+  protected editar(cliente: Cliente): void {
+    this.idEmEdicao.set(cliente.id);
+    this.nome = cliente.nome;
+    this.email = cliente.email;
+    this.erro.set(null);
+  }
+
+  protected cancelarEdicao(): void {
+    this.idEmEdicao.set(null);
+    this.nome = '';
+    this.email = '';
+  }
+
+  protected excluir(cliente: Cliente): void {
+    if (!window.confirm(`Excluir o cliente ${cliente.nome}?`)) return;
+
+    this.erro.set(null);
+    this.service.excluir(cliente.id).subscribe({
+      next: () => {
+        this.clientes.update((lista) => lista.filter((item) => item.id !== cliente.id));
+        if (this.idEmEdicao() === cliente.id) this.cancelarEdicao();
+      },
+      error: (e: HttpErrorResponse) => {
+        this.erro.set(e.error?.erro ?? 'Erro ao excluir cliente.');
       },
     });
   }

@@ -17,4 +17,12 @@ export class ClienteService {
   criar(cliente: NovoCliente): Observable<Cliente> {
     return this.http.post<Cliente>(this.apiUrl, cliente);
   }
+
+  atualizar(id: number, cliente: NovoCliente): Observable<Cliente> {
+    return this.http.put<Cliente>(`${this.apiUrl}/${id}`, cliente);
+  }
+
+  excluir(id: number): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/${id}`);
+  }
 }
